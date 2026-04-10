@@ -135,7 +135,8 @@ export default function IssuerPage({ publicKey, signFn }) {
       setResult(res)
       toast.success('Certificate registered on-chain!')
     } catch (err) {
-      toast.error(err?.response?.data?.error || err.message)
+      const apiMsg = err?.response?.data?.error
+      toast.error(apiMsg || err?.message || String(err))
     } finally {
       setLoading(false)
     }

@@ -1,0 +1,40 @@
+# Rust / Soroban
+/target/
+**/*.rs.bk
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend build
+frontend/dist/
+frontend/.vite/
+
+# Env & secrets (keep .env.example tracked)
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs & temp
+*.log
+.tmp/
+tmp/
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/

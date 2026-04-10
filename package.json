@@ -1,0 +1,22 @@
+{
+  "name": "stellaroid-earn",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Green Belt stack: Soroban contract + Express API + React/Vite/Freighter",
+  "scripts": {
+    "install:deps": "npm install --prefix backend && npm install --prefix frontend",
+    "setup": "npm install && npm run install:deps",
+    "dev:api": "npm run dev --prefix backend",
+    "dev:web": "npm run dev --prefix frontend",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
+    "start:api": "npm run start --prefix backend",
+    "build:web": "npm run build --prefix frontend",
+    "preview:web": "npm run preview --prefix frontend",
+    "green-belt:week3": "npm run dev",
+    "green-belt:week4:smoke": "node scripts/smoke-api.mjs",
+    "green-belt:week4:reward": "node scripts/trigger-reward.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

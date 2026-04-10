@@ -1,0 +1,8 @@
+# Soroban’s Wasm VM does not enable the reference-types proposal. Newer Rust/LLVM
+# can emit those opcodes unless we disable them here (fixes deploy:
+# "reference-types not enabled: zero byte expected").
+[target.wasm32v1-none]
+rustflags = ["-C", "target-feature=-reference-types"]
+
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=-reference-types"]

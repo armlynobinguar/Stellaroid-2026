@@ -1,0 +1,6 @@
+# Soroban Wasm on Testnet rejects LLVM output from Rust ≥1.82 (reference-types, etc.).
+# Stellar recommends building contracts with Rust 1.81 until the host catches up.
+# See: https://github.com/stellar/rs-soroban-sdk/issues/1438
+[toolchain]
+channel = "1.81" # latest patch on the 1.81 release series
+targets = ["wasm32v1-none", "wasm32-unknown-unknown"]

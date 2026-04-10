@@ -22,6 +22,7 @@ Stellaroid Earn follows a belt-based learning path for developers and students o
 |------|-------|-------|
 | ⚪ White Belt | Level 1 | Build wallets and submit your first on-chain transactions. |
 | 🟡 Yellow Belt | Level 2 | Work with multi-wallet flows, smart contracts, and event handling. |
+| 🟢 Green Belt | Level 3 | Ship the full-stack app: APIs, Freighter signing, rewards, and student UX. |
 
 ### ⚪ White Belt — Level 1 Features
 - Generate a Stellar keypair (student wallet)
@@ -35,6 +36,14 @@ Stellaroid Earn follows a belt-based learning path for developers and students o
 - Call `verify_certificate()` and observe the emitted on-chain event
 - Set up a Trustline for a custom school-issued credential token
 - Trigger `link_payment()` from an employer wallet to a verified student
+
+### 🟢 Green Belt — Level 3 Features
+- Run the **Express + Soroban RPC** backend (`backend/`) with `CONTRACT_ID` and funded `BACKEND_SECRET` on Testnet
+- **Issuer flow (React + Freighter):** build unsigned `register_certificate` XDR via `POST /api/certificates/build-register`, sign in Freighter, submit via `POST /api/certificates/register`
+- **Student dashboard:** load XLM balance (Horizon), list on-chain credentials for the connected wallet (`GET /api/certificates/owner/:address` — event scan + `get_certificate`), and show **belt progression** (⚪→🟡→🟢 by credential count in the UI)
+- **Public verification:** verify by hash or file hash against the contract (`GET /api/certificates/verify/:hash`)
+- **Employer flow:** confirm a credential, then build/sign/submit `link_payment` (`POST /api/payments/build` + `POST /api/payments/submit`)
+- **Learn-to-earn:** trigger `reward_student` from the backend after a cert is verified on-chain (`POST /api/rewards/trigger` — contract must hold XLM on the SAC)
 
 ---
 
@@ -60,12 +69,37 @@ Stellaroid Earn follows a belt-based learning path for developers and students o
 ## 📦 Project Structure
 
 ```
-stellaroid_earn/
-├── Cargo.toml          # Build config and dependencies
+Stellaroid-2026/
+├── package.json        # Root scripts (Green Belt — run API + Vite together)
+├── scripts/
+│   ├── smoke-api.mjs           # Week 4: health + cert_count smoke test
+│   └── trigger-reward.mjs      # Week 4: POST /api/rewards/trigger
+├── backend/            # Express + Soroban RPC (REST API)
+├── frontend/           # React + Vite + Freighter
+├── rust-toolchain.toml # Pin Rust 1.81.x for Soroban Wasm (avoids reference-types on ≥1.82)
+├── .cargo/config.toml  # Extra Wasm rustflags for Soroban VM compatibility
+├── Cargo.toml          # Soroban contract build config
 └── src/
     ├── lib.rs          # Soroban smart contract (core logic)
-    └── test.rs         # 3 unit tests using soroban_sdk::testutils
+    └── test.rs         # Unit tests (soroban_sdk::testutils)
 ```
+
+### 🟢 Green Belt — NPM scripts (Week 3–4)
+
+From the **repository root** (requires Node 18+):
+
+| Script | What it does |
+|--------|----------------|
+| `npm run setup` | Installs root `concurrently`, then `backend` + `frontend` dependencies |
+| `npm run dev` | **Week 3:** runs **API** (`:4000`) and **Vite** (`:5173`) together — use with `backend/.env` + Freighter on Testnet |
+| `npm run dev:api` | API only |
+| `npm run dev:web` | Frontend only (proxies `/api` → `:4000`) |
+| `npm run green-belt:week3` | Alias for `npm run dev` |
+| `npm run green-belt:week4:smoke` | **Week 4:** hits `GET /health` and `GET /api/certificates/count` |
+| `npm run green-belt:week4:reward -- <64-hex-hash>` | **Week 4:** calls `POST /api/rewards/trigger` (contract must hold XLM; cert must exist) |
+| `npm run build:web` | Production build of the React app |
+
+Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + trustline** (stretch) still use Stellar Laboratory or CLI per Yellow Belt — not wrapped in npm here.
 
 ---
 
@@ -73,8 +107,8 @@ stellaroid_earn/
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Rust toolchain | stable (≥ 1.78) | `curl https://sh.rustup.rs -sSf \| sh` |
-| Wasm target | wasm32-unknown-unknown | `rustup target add wasm32-unknown-unknown` |
+| Rust toolchain | **1.81.x** (pinned in `rust-toolchain.toml`) | From the repo root, `rustup` installs the pin automatically (`rustup show`) |
+| Wasm target | **wasm32v1-none** (recommended) + wasm32-unknown-unknown | Installed via `rust-toolchain.toml` when you `rustup` in this repo |
 | Soroban CLI | ≥ 21.x | `cargo install --locked soroban-cli` |
 | Stellar Account | Testnet funded | [Friendbot](https://friendbot.stellar.org) |
 
@@ -87,10 +121,11 @@ stellaroid_earn/
 git clone https://github.com/your-org/stellaroid-earn.git
 cd stellaroid_earn
 
-# Build the Wasm contract
-soroban contract build
+# Build the Wasm contract (uses wasm32v1-none when using current Stellar CLI)
+stellar contract build
+# or: soroban contract build
 
-# Output: target/wasm32-unknown-unknown/release/stellaroid_earn.wasm
+# Output (typical): target/wasm32v1-none/release/stellaroid_earn.wasm
 ```
 
 ---
@@ -118,6 +153,26 @@ test result: ok. 3 passed; 0 failed
 
 ## 🚀 Testnet Deployment
 
+### Build the `.wasm` (before deploy)
+
+Use either:
+
+```bash
+# Recommended — Stellar CLI applies the right target (usually wasm32v1-none)
+stellar contract build
+# or: soroban contract build
+```
+
+Or plain Cargo (same rustflags via **`.cargo/config.toml`**):
+
+```bash
+cargo clean
+cargo build --target wasm32v1-none --release
+# Legacy target (if needed): cargo build --target wasm32-unknown-unknown --release
+```
+
+If you still see **`reference-types not enabled`**, use **Rust 1.81** from `rust-toolchain.toml` (`rustup show` in this repo), then `cargo clean` and rebuild.
+
 ### 1. Configure Soroban CLI with a Testnet identity
 
 ```bash
@@ -128,13 +183,28 @@ soroban keys fund alice --network testnet
 ### 2. Deploy the contract
 
 ```bash
-soroban contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/stellaroid_earn.wasm \
-  --source alice \
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/stellaroid_earn.wasm \
+  --source my-key \
   --network testnet
 ```
 
-You'll receive a **Contract ID** — save it as `$CONTRACT_ID`.
+(Equivalent: `soroban contract deploy` with the same `--wasm` path.)
+
+You'll receive a **Contract ID** — put it in `backend/.env` as `CONTRACT_ID` for the full-stack app.
+
+### 3. Full-stack app (API + Vite + Freighter) on Testnet
+
+Wire the **same wasm / contract** you deployed (`target/wasm32v1-none/release/stellaroid_earn.wasm` → deploy → contract id).
+
+| Step | Action |
+|------|--------|
+| **Reference contract** | `CABV3HJFEPCREHGVFTHETSCAGPVI4O4NTCBWS5ROH6ZCWOJHNKLOO2RS` — [Stellar Lab](https://lab.stellar.org/r/testnet/contract/CABV3HJFEPCREHGVFTHETSCAGPVI4O4NTCBWS5ROH6ZCWOJHNKLOO2RS) |
+| **Backend** | `cp backend/.env.example backend/.env` → set **`BACKEND_SECRET`** (funded Testnet account). `CONTRACT_ID` is pre-filled to the reference deploy; override if you redeploy. |
+| **Run** | Repo root: `npm run setup` then `npm run dev` → API **:4000**, UI **:5173** (`/api` proxied to the API). |
+| **Freighter** | **Testnet** + passphrase `Test SDF Network ; September 2015` (matches `NETWORK_PASSPHRASE` / `frontend/src/config/stellar.js`). |
+| **Issue credentials** | The **issuer** Freighter account must **exist on Testnet with XLM** (Friendbot). Otherwise `build-register` fails: Soroban needs a sequence number for the transaction source. |
+| **Rewards / payments** | Pre-fund the **contract** with Testnet XLM on the SAC so `reward_student` and token transfers can succeed. |
 
 ---
 
@@ -206,8 +276,8 @@ soroban contract invoke \
 |------|-----------|
 | **Week 1** | ⚪ White Belt — Wallet creation, Friendbot funding, first XLM transactions |
 | **Week 2** | 🟡 Yellow Belt — Contract deployment, `register_certificate`, `verify_certificate` live on Testnet |
-| **Week 3** | Employer `link_payment` flow, frontend integration (React + Freighter wallet) |
-| **Week 4** | Custom credential token issuance, Trustline setup, end-to-end demo |
+| **Week 3** | 🟢 Green Belt — Employer `link_payment` flow, React + Vite + Freighter, REST API wiring → run `npm run setup` then `npm run green-belt:week3` (or `npm run dev`) |
+| **Week 4** | 🟢 Green Belt — Student dashboard, public verify, `reward_student` trigger; custom token + Trustline for stretch demo → `npm run green-belt:week4:smoke`, `npm run green-belt:week4:reward -- <hash>` |
 | **Week 5** | Security review, Testnet stress tests, Mainnet deployment preparation |
 
 ---

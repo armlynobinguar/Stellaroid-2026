@@ -1,11 +1,17 @@
 import { useState, useCallback, useEffect } from 'react'
 import {
   isConnected,
-  getPublicKey,
+  getAddress,
   signTransaction,
   requestAccess,
 } from '@stellar/freighter-api'
 import { NETWORK_PASSPHRASE } from '../config/stellar.js'
+
+async function readPublicKey() {
+  const { address, error } = await getAddress()
+  if (error) throw new Error(error.message || String(error))
+  return address || null
+}
 
 export function useWallet() {
   const [publicKey, setPublicKey] = useState(null)
@@ -15,12 +21,12 @@ export function useWallet() {
 
   const refresh = useCallback(async () => {
     try {
-      const ok = await isConnected()
-      if (!ok) {
+      const conn = await isConnected()
+      if (conn.error || !conn.isConnected) {
         setPublicKey(null)
         return
       }
-      const pk = await getPublicKey()
+      const pk = await readPublicKey()
       setPublicKey(pk)
     } catch {
       setPublicKey(null)
@@ -36,9 +42,14 @@ export function useWallet() {
     setError(null)
     setNetworkMismatch(false)
     try {
-      await requestAccess()
-      const pk = await getPublicKey()
-      setPublicKey(pk)
+      const res = await requestAccess()
+      if (res.error) {
+        throw new Error(res.error.message || String(res.error))
+      }
+      if (!res.address) {
+        throw new Error('Freighter did not return an address')
+      }
+      setPublicKey(res.address)
     } catch (e) {
       setError(e?.message || 'Could not connect to Freighter')
     } finally {
