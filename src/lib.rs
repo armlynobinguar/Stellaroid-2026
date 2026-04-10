@@ -46,7 +46,7 @@ pub struct CertRecord {
 // ─────────────────────────────────────────────
 
 #[contracterror]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum ContractError {
     /// A certificate with this hash already exists — duplicate registration
     DuplicateCertificate = 1,
