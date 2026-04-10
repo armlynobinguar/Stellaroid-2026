@@ -1,8 +1,13 @@
 import { motion } from 'framer-motion'
-import { BELT_LEVELS } from '../config/stellar'
 
 const s = {
-  page: { paddingTop: '64px', minHeight: '100vh', position: 'relative', overflow: 'hidden' },
+  page: {
+    paddingTop: '64px',
+    paddingBottom: '4rem',
+    minHeight: '100vh',
+    position: 'relative',
+    overflow: 'hidden',
+  },
   stars: {
     position: 'absolute',
     inset: 0,
@@ -106,43 +111,6 @@ const s = {
     textTransform: 'uppercase',
     letterSpacing: '0.1em',
   },
-  beltsSection: { maxWidth: 900, margin: '0 auto', padding: '0 2rem 5rem' },
-  sectionTitle: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.7rem',
-    letterSpacing: '0.2em',
-    color: 'var(--gold)',
-    textTransform: 'uppercase',
-    marginBottom: '1.5rem',
-    textAlign: 'center',
-  },
-  beltGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-    gap: '1px',
-    background: 'rgba(245,200,66,0.1)',
-  },
-  beltCard: {
-    background: 'var(--surface)',
-    padding: '1.5rem 1rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    alignItems: 'center',
-    textAlign: 'center',
-  },
-  beltEmoji: { fontSize: '1.8rem' },
-  beltName: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-  },
-  beltThreshold: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '0.65rem',
-    color: 'var(--text-muted)',
-  },
 }
 
 const container = {
@@ -220,46 +188,6 @@ export default function LandingPage({ onNav }) {
           ))}
         </motion.div>
       </motion.div>
-
-      <div style={s.beltsSection}>
-        <p style={s.sectionTitle}>BELT PROGRESSION SYSTEM</p>
-        <div style={s.beltGrid}>
-          {BELT_LEVELS.map((belt, i) => (
-            <motion.div
-              key={belt.id}
-              style={s.beltCard}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ background: 'var(--surface-2)' }}
-            >
-              <motion.span
-                style={s.beltEmoji}
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
-              >
-                {belt.emoji}
-              </motion.span>
-              <span style={{ ...s.beltName, color: belt.color }}>{belt.label}</span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.6rem',
-                  color: 'var(--text-muted)',
-                  lineHeight: 1.5,
-                  textAlign: 'center',
-                }}
-              >
-                {belt.description}
-              </span>
-              <span style={s.beltThreshold}>
-                {belt.threshold === 0 ? 'Start here' : `${belt.threshold}+ certs`}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
