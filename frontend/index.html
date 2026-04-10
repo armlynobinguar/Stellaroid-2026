@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stellaroid Earn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --void: #0a0b10;
+        --surface: #12141c;
+        --surface-2: #181b26;
+        --border: rgba(245, 200, 66, 0.12);
+        --gold: #f5c842;
+        --text: #e8eaef;
+        --text-muted: #8b90a0;
+        --green: #22c55e;
+        --red: #ef4444;
+        --font-display: 'Orbitron', system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body,
+      #root {
+        margin: 0;
+        min-height: 100%;
+        background: var(--void);
+        color: var(--text);
+        font-family: var(--font-mono);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
