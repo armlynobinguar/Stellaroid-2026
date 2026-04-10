@@ -1,0 +1,42 @@
+[package]
+name    = "stellaroid_earn"
+version = "0.1.0"
+edition = "2021"
+authors = ["Stellaroid Earn Contributors"]
+description = "On-chain credential verification and learn-to-earn platform for SEA students, built on Stellar Soroban."
+license = "MIT"
+
+# ─── Library config ───────────────────────────────────────────────────────────
+# cdylib  → produces the .wasm file deployed to the Stellar network
+# rlib    → allows the crate to be imported by test.rs and other Rust code
+[lib]
+name        = "stellaroid_earn"
+crate-type  = ["cdylib", "rlib"]
+
+# ─── Runtime dependencies ─────────────────────────────────────────────────────
+[dependencies]
+soroban-sdk = { version = "21.0.0" }
+
+# ─── Test-only dependencies ───────────────────────────────────────────────────
+# testutils enables Env::default(), Address::generate(), mock_all_auths(),
+# and the token test helpers needed by test.rs.
+[dev-dependencies]
+soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+
+# ─── Wasm release profile ─────────────────────────────────────────────────────
+# These settings are required by the Soroban toolchain to produce a
+# small, valid .wasm binary that fits within Stellar's upload limits.
+[profile.release]
+opt-level      = "z"       # Optimize for binary size (Wasm size matters on-chain)
+overflow-checks = true     # Keep overflow panics — silent overflow is a security risk
+debug          = false
+debug-assertions = false
+lto            = true      # Link-time optimisation reduces dead code in Wasm
+panic          = "abort"   # Abort on panic (no unwinding in Wasm)
+codegen-units  = 1         # Single codegen unit maximises LTO effectiveness
+strip          = "symbols" # Strip debug symbols from the final .wasm
+
+# ─── Wasm test profile ────────────────────────────────────────────────────────
+[profile.release-with-logs]
+inherits       = "release"
+debug-assertions = true    # Re-enable for testnet debugging without full debug build
