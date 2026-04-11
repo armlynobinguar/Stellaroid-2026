@@ -1,4 +1,4 @@
-# 🌟 Stellaroid Earn
+# Stellaroid Earn
 
 > On-chain credential verification and learn-to-earn rewards for students and fresh graduates across Southeast Asia — powered by Stellar Soroban.
 
