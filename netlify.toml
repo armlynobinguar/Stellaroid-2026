@@ -1,0 +1,14 @@
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+#
+# In Netlify UI → Site → Build & deploy: "Base directory" can stay empty
+# if you use these paths from the repo root.
+
+[build]
+  command = "npm ci --prefix frontend && npm run build --prefix frontend"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Optional: Netlify → Environment variables → add VITE_API_BASE_URL with your
+# deployed API origin (no trailing slash), e.g. https://stellaroid-api.onrender.com
