@@ -1,2 +1,1 @@
-# SPA fallback: serve index.html for any path so client routing / deep links work.
 /*    /index.html   200
