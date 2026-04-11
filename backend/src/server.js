@@ -1,10 +1,5 @@
-import { config as loadEnv } from 'dotenv'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import './load-env.js'
 import express from 'express'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-loadEnv({ path: join(__dirname, '..', '.env') })
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'

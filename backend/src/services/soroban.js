@@ -15,7 +15,6 @@ const NETWORK_PASS =
 const XLM_SAC =
   process.env.XLM_SAC ||
   'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC'
-const BACKEND_SECRET = process.env.BACKEND_SECRET
 
 export const rpc = new SorobanRpc.Server(RPC_URL, { allowHttp: false })
 
@@ -29,8 +28,9 @@ export function getContract() {
 }
 
 export function getBackendKeypair() {
-  if (!BACKEND_SECRET) throw new Error('BACKEND_SECRET not set in .env')
-  return Keypair.fromSecret(BACKEND_SECRET)
+  const secret = String(process.env.BACKEND_SECRET ?? '').trim()
+  if (!secret) throw new Error('BACKEND_SECRET not set in .env')
+  return Keypair.fromSecret(secret)
 }
 
 export function hexToScBytes32(hexStr) {
@@ -62,6 +62,24 @@ function assertNoRestore(sim) {
   }
 }
 
+/** StellaroidEarn `ContractError` variants from `src/lib.rs` (simulation HostError text). */
+function explainContractSimulationError(message) {
+  if (!message || typeof message !== 'string') return message
+  const hints = {
+    1: 'DuplicateCertificate — this SHA-256 hash is already registered on this contract. Use a new file/hash or a different contract id.',
+    2: 'CertificateNotFound — no record for that hash.',
+    3: 'TamperDetected — stored hash mismatch.',
+    4: 'AlreadyRewarded — reward was already claimed for this certificate.',
+    5: 'Unauthorized — caller is not the certificate owner.',
+  }
+  const m = message.match(/Error\(Contract,\s*#(\d+)\)/)
+  if (m) {
+    const hint = hints[Number(m[1])]
+    if (hint) return `${message} → ${hint}`
+  }
+  return message
+}
+
 export async function buildTx(sourceAddress, method, args) {
   let account
   try {
@@ -90,7 +108,8 @@ export async function buildTx(sourceAddress, method, args) {
   }
 
   if (SorobanRpc.Api.isSimulationError(simResult)) {
-    throw new Error(`Simulation failed: ${simResult.error}`)
+    const detail = explainContractSimulationError(simResult.error)
+    throw new Error(`Simulation failed: ${detail}`)
   }
   assertNoRestore(simResult)
 
@@ -136,7 +155,20 @@ export async function submitSigned(signedXdr) {
   let getResult
   for (let i = 0; i < 30; i++) {
     await sleep(1000)
-    getResult = await rpc.getTransaction(txHash)
+    try {
+      getResult = await rpc.getTransaction(txHash)
+    } catch (e) {
+      const msg = e?.message || String(e)
+      // SDK <14 cannot parse Protocol 23+ TransactionMeta (see stellar/js-stellar-sdk#1185).
+      if (/Bad union switch/i.test(msg)) {
+        throw new Error(
+          'Soroban RPC returned transaction metadata this SDK cannot parse (usually fixed by ' +
+            '`cd backend && npm install` so @stellar/stellar-sdk is v14+. ' +
+            `Detail: ${msg}`,
+        )
+      }
+      throw e
+    }
     if (getResult.status !== SorobanRpc.Api.GetTransactionStatus.NOT_FOUND) break
   }
 
