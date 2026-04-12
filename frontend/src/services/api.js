@@ -2,13 +2,26 @@
  * Same-origin `/api/*` in dev (Vite proxy → localhost) and on Netlify (rewrite in
  * built `_redirects` → set NETLIFY_API_ORIGIN or VITE_API_BASE_URL at build time).
  */
+function isProbablyHtml(body) {
+  const s = String(body || '').trimStart()
+  return s.startsWith('<!') || s.startsWith('<html')
+}
+
 async function parseJson(res) {
   const text = await res.text()
   let data
   try {
     data = text ? JSON.parse(text) : {}
   } catch {
-    data = { error: text || res.statusText }
+    if (isProbablyHtml(text)) {
+      data = {
+        error:
+          'The server returned a web page instead of JSON (often an HTML error or Netlify 404). ' +
+            'On Netlify set NETLIFY_API_ORIGIN to your Express API URL and redeploy; locally run the backend on port 4000.',
+      }
+    } else {
+      data = { error: text || res.statusText }
+    }
   }
   if (!res.ok) {
     const err = new Error(data.error || res.statusText)
