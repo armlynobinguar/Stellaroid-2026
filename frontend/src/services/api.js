@@ -1,11 +1,7 @@
-/** Set on Netlify / production to your Express API origin (no trailing slash). */
-const API_BASE = String(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-
-function apiUrl(path) {
-  if (path.startsWith('http')) return path
-  return `${API_BASE}${path}`
-}
-
+/**
+ * Same-origin `/api/*` in dev (Vite proxy → localhost) and on Netlify (rewrite in
+ * built `_redirects` → set NETLIFY_API_ORIGIN or VITE_API_BASE_URL at build time).
+ */
 async function parseJson(res) {
   const text = await res.text()
   let data
@@ -23,7 +19,7 @@ async function parseJson(res) {
 }
 
 export async function buildRegisterTx(body) {
-  const res = await fetch(apiUrl('/api/certificates/build-register'), {
+  const res = await fetch('/api/certificates/build-register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -33,7 +29,7 @@ export async function buildRegisterTx(body) {
 }
 
 export async function registerCertificate({ signedXdr, fileHash }) {
-  const res = await fetch(apiUrl('/api/certificates/register'), {
+  const res = await fetch('/api/certificates/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ signedXdr, fileHash }),
@@ -43,14 +39,14 @@ export async function registerCertificate({ signedXdr, fileHash }) {
 
 export async function getCertsByOwner(owner) {
   const res = await fetch(
-    apiUrl(`/api/certificates/owner/${encodeURIComponent(owner)}`),
+    `/api/certificates/owner/${encodeURIComponent(owner)}`,
   )
   return parseJson(res)
 }
 
 export async function getBalance(address) {
   const res = await fetch(
-    apiUrl(`/api/wallet/balance/${encodeURIComponent(address)}`),
+    `/api/wallet/balance/${encodeURIComponent(address)}`,
   )
   return parseJson(res)
 }
@@ -58,13 +54,13 @@ export async function getBalance(address) {
 export async function verifyCertificate(hash) {
   const clean = hash.replace(/^0x/i, '')
   const res = await fetch(
-    apiUrl(`/api/certificates/verify/${encodeURIComponent(clean)}`),
+    `/api/certificates/verify/${encodeURIComponent(clean)}`,
   )
   return parseJson(res)
 }
 
 export async function buildPaymentTx(body) {
-  const res = await fetch(apiUrl('/api/payments/build'), {
+  const res = await fetch('/api/payments/build', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -74,7 +70,7 @@ export async function buildPaymentTx(body) {
 }
 
 export async function submitPayment({ signedXdr }) {
-  const res = await fetch(apiUrl('/api/payments/submit'), {
+  const res = await fetch('/api/payments/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ signedXdr }),
@@ -83,7 +79,7 @@ export async function submitPayment({ signedXdr }) {
 }
 
 export async function getCertCount() {
-  const res = await fetch(apiUrl('/api/certificates/count'))
+  const res = await fetch('/api/certificates/count')
   const data = await parseJson(res)
   return data.count
 }
