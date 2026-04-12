@@ -28,8 +28,9 @@ function netlifyDistExtras() {
       const onNetlifyProd =
         process.env.NETLIFY === 'true' && process.env.CONTEXT === 'production'
       if (onNetlifyProd && !origin) {
-        throw new Error(
-          'Netlify production build: set VITE_API_BASE_URL to your public HTTPS API origin (no trailing slash), e.g. https://stellaroid-api.onrender.com — then redeploy.',
+        console.warn(
+          '\n[vite] Netlify production: set VITE_API_BASE_URL (or NETLIFY_API_ORIGIN) so /api works. ' +
+            'Build continues; live /api calls will fail until that env is set and you redeploy.\n',
         )
       }
 
