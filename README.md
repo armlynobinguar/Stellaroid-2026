@@ -76,12 +76,14 @@ Stellaroid-2026/
 │   └── trigger-reward.mjs      # Week 4: POST /api/rewards/trigger
 ├── backend/            # Express + Soroban RPC (REST API)
 ├── frontend/           # React + Vite + Freighter
-├── rust-toolchain.toml # Pin Rust 1.81.x for Soroban Wasm (avoids reference-types on ≥1.82)
-├── .cargo/config.toml  # Extra Wasm rustflags for Soroban VM compatibility
-├── Cargo.toml          # Soroban contract build config
-└── src/
-    ├── lib.rs          # Soroban smart contract (core logic)
-    └── test.rs         # Unit tests (soroban_sdk::testutils)
+└── contract/           # Soroban Wasm crate (build & test from this directory)
+    ├── rust-toolchain.toml # Pin Rust 1.81.x for Soroban Wasm
+    ├── .cargo/config.toml  # Extra Wasm rustflags for Soroban VM compatibility
+    ├── Cargo.toml
+    ├── Cargo.lock
+    └── src/
+        ├── lib.rs      # Soroban smart contract (core logic)
+        └── test.rs     # Unit tests (soroban_sdk::testutils)
 ```
 
 ### 🟢 Green Belt — NPM scripts (Week 3–4)
@@ -98,6 +100,7 @@ From the **repository root** (requires Node 18+):
 | `npm run green-belt:week4:smoke` | **Week 4:** hits `GET /health` and `GET /api/certificates/count` |
 | `npm run green-belt:week4:reward -- <64-hex-hash>` | **Week 4:** calls `POST /api/rewards/trigger` (contract must hold XLM; cert must exist) |
 | `npm run build:web` | Production build of the React app |
+| `npm run build:contract` | `cd contract && stellar contract build` (Wasm output under `contract/target/`) |
 
 Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + trustline** (stretch) still use Stellar Laboratory or CLI per Yellow Belt — not wrapped in npm here.
 
@@ -107,8 +110,8 @@ Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + tru
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Rust toolchain | **1.81.x** (pinned in `rust-toolchain.toml`) | From the repo root, `rustup` installs the pin automatically (`rustup show`) |
-| Wasm target | **wasm32v1-none** (recommended) + wasm32-unknown-unknown | Installed via `rust-toolchain.toml` when you `rustup` in this repo |
+| Rust toolchain | **1.81.x** (pinned in `contract/rust-toolchain.toml`) | Run `cd contract && rustup show` — installs the pin when you enter the crate |
+| Wasm target | **wasm32v1-none** (recommended) + wasm32-unknown-unknown | Installed via `contract/rust-toolchain.toml` when you `rustup` in `contract/` |
 | Soroban CLI | ≥ 21.x | `cargo install --locked soroban-cli` |
 | Stellar Account | Testnet funded | [Friendbot](https://friendbot.stellar.org) |
 
@@ -121,11 +124,13 @@ Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + tru
 git clone https://github.com/your-org/stellaroid-earn.git
 cd stellaroid_earn
 
+cd contract
+
 # Build the Wasm contract (uses wasm32v1-none when using current Stellar CLI)
 stellar contract build
 # or: soroban contract build
 
-# Output (typical): target/wasm32v1-none/release/stellaroid_earn.wasm
+# Output (typical): contract/target/wasm32v1-none/release/stellaroid_earn.wasm
 ```
 
 ---
@@ -133,6 +138,8 @@ stellar contract build
 ## 🧪 Test Instructions
 
 ```bash
+cd contract
+
 # Run all 3 unit tests
 cargo test
 
@@ -158,20 +165,23 @@ test result: ok. 3 passed; 0 failed
 Use either:
 
 ```bash
+cd contract
+
 # Recommended — Stellar CLI applies the right target (usually wasm32v1-none)
 stellar contract build
 # or: soroban contract build
 ```
 
-Or plain Cargo (same rustflags via **`.cargo/config.toml`**):
+Or plain Cargo (same rustflags via **`contract/.cargo/config.toml`**):
 
 ```bash
+cd contract
 cargo clean
 cargo build --target wasm32v1-none --release
 # Legacy target (if needed): cargo build --target wasm32-unknown-unknown --release
 ```
 
-If you still see **`reference-types not enabled`**, use **Rust 1.81** from `rust-toolchain.toml` (`rustup show` in this repo), then `cargo clean` and rebuild.
+If you still see **`reference-types not enabled`**, use **Rust 1.81** from `contract/rust-toolchain.toml` (`cd contract && rustup show`), then `cargo clean` and rebuild.
 
 ### 1. Configure Soroban CLI with a Testnet identity
 
@@ -184,18 +194,18 @@ soroban keys fund alice --network testnet
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32v1-none/release/stellaroid_earn.wasm \
+  --wasm contract/target/wasm32v1-none/release/stellaroid_earn.wasm \
   --source my-key \
   --network testnet
 ```
 
-(Equivalent: `soroban contract deploy` with the same `--wasm` path.)
+(Equivalent: `soroban contract deploy` with the same `--wasm` path. Run from the **repository root**, or use an absolute path to the `.wasm` file.)
 
 You'll receive a **Contract ID** — put it in `backend/.env` as `CONTRACT_ID` for the full-stack app.
 
 ### 3. Full-stack app (API + Vite + Freighter) on Testnet
 
-Wire the **same wasm / contract** you deployed (`target/wasm32v1-none/release/stellaroid_earn.wasm` → deploy → contract id).
+Wire the **same wasm / contract** you deployed (`contract/target/wasm32v1-none/release/stellaroid_earn.wasm` → deploy → contract id).
 
 | Step | Action |
 |------|--------|

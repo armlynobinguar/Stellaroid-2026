@@ -33,11 +33,31 @@ if (missing.length) {
 const app = express()
 const PORT = process.env.PORT || 4000
 
-app.use(helmet())
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+)
 app.use(morgan('dev'))
+
+const CORS_ORIGINS = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+      if (CORS_ORIGINS.includes(origin)) {
+        callback(null, true)
+        return
+      }
+      callback(null, false)
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
   }),
 )

@@ -11,6 +11,8 @@
     "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev:api\" \"npm run dev:web\"",
     "start:api": "npm run start --prefix backend",
     "build:web": "npm run build --prefix frontend",
+    "build:contract": "cd contract && stellar contract build",
+    "netlify:build": "npm ci --prefix frontend && npm run build --prefix frontend",
     "preview:web": "npm run preview --prefix frontend",
     "green-belt:week3": "npm run dev",
     "green-belt:week4:smoke": "node scripts/smoke-api.mjs",

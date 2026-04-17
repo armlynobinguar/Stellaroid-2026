@@ -1,18 +1,14 @@
+# Build from repo root. Clear Base / Publish / Build command in Netlify UI.
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 #
-# Build runs from repo root OR from frontend/ depending on Netlify "Base directory".
-# Do not set Base directory + publish to "frontend/dist" together (doubles the path).
+# For working /api on the live site: VITE_API_BASE_URL = https://your-express-host.example.com
+# (no trailing slash). Vite injects it into the client; same value is used for dist/_redirects proxy.
+# On your API host: FRONTEND_URL can be comma-separated, e.g.
+#   http://localhost:5173,https://your-site.netlify.app
 
 [build]
-  command = "if [ -f frontend/package.json ]; then npm ci --prefix frontend && npm run build --prefix frontend; else npm ci && npm run build; fi"
+  command = "npm run netlify:build"
   publish = "frontend/dist"
 
 [build.environment]
   NODE_VERSION = "20"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Netlify → Environment variables → VITE_API_BASE_URL (API origin, no trailing slash)
