@@ -1,6 +1,11 @@
-# Soroban Wasm on Testnet rejects LLVM output from Rust ≥1.82 (reference-types, etc.).
-# Stellar recommends building contracts with Rust 1.81 until the host catches up.
-# See: https://github.com/stellar/rs-soroban-sdk/issues/1438
+# Soroban Wasm: still use Rust flags in `.cargo/config.toml` (reference-types, etc.).
+#
+# Older pins (e.g. Rust 1.81) ship Cargo that cannot parse `edition = "2024"` in
+# crates.io manifests, so `cargo test` can fail while resolving `soroban-sdk`.
+# Use a recent toolchain (e.g. stable). If Wasm deploy fails, check Stellar /
+# Soroban SDK notes for the Rust version they recommend for your network.
+#
+# Do not list `targets` here: rustup may fail on `wasm32v1-none` on some hosts.
+# Add when building: `rustup target add wasm32-unknown-unknown` (and wasm32v1-none if available).
 [toolchain]
-channel = "1.81" # latest patch on the 1.81 release series
-targets = ["wasm32v1-none", "wasm32-unknown-unknown"]
+channel = "stable"
