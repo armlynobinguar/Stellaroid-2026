@@ -8,7 +8,7 @@
 
 [build]
   command = "npm run netlify:build"
-  publish = "frontend/dist"
+  publish = "client/dist"
 
 [build.environment]
   NODE_VERSION = "20"

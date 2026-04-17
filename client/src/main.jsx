@@ -5,7 +5,7 @@ import App from './App.jsx'
 const rootEl = document.getElementById('root')
 if (!rootEl) {
   document.body.innerHTML =
-    '<p style="font-family:system-ui;padding:2rem;color:#c00">Missing #root in index.html — rebuild the frontend (vite build).</p>'
+    '<p style="font-family:system-ui;padding:2rem;color:#c00">Missing #root in index.html — rebuild the client app (vite build).</p>'
   throw new Error('Missing #root')
 }
 

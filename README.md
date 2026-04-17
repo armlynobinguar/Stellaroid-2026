@@ -75,7 +75,7 @@ Stellaroid-2026/
 │   ├── smoke-api.mjs           # Week 4: health + cert_count smoke test
 │   └── trigger-reward.mjs      # Week 4: POST /api/rewards/trigger
 ├── backend/            # Express + Soroban RPC (REST API)
-├── frontend/           # React + Vite + Freighter
+├── client/             # React + Vite + Freighter (web UI)
 └── contract/           # Soroban Wasm crate (build & test from this directory)
     ├── rust-toolchain.toml # Pin Rust 1.81.x for Soroban Wasm
     ├── .cargo/config.toml  # Extra Wasm rustflags for Soroban VM compatibility
@@ -92,7 +92,7 @@ From the **repository root** (requires Node 18+):
 
 | Script | What it does |
 |--------|----------------|
-| `npm run setup` | Installs root `concurrently`, then `backend` + `frontend` dependencies |
+| `npm run setup` | Installs root `concurrently`, then `backend` + `client` dependencies |
 | `npm run dev` | **Week 3:** runs **API** (`:4000`) and **Vite** (`:5173`) together — use with `backend/.env` + Freighter on Testnet |
 | `npm run dev:api` | API only |
 | `npm run dev:web` | Frontend only (proxies `/api` → `:4000`) |
@@ -212,7 +212,7 @@ Wire the **same wasm / contract** you deployed (`contract/target/wasm32v1-none/r
 | **Reference contract** | `CABV3HJFEPCREHGVFTHETSCAGPVI4O4NTCBWS5ROH6ZCWOJHNKLOO2RS` — [Stellar Lab](https://lab.stellar.org/r/testnet/contract/CABV3HJFEPCREHGVFTHETSCAGPVI4O4NTCBWS5ROH6ZCWOJHNKLOO2RS) |
 | **Backend** | `cp backend/.env.example backend/.env` → set **`BACKEND_SECRET`** (funded Testnet account). `CONTRACT_ID` is pre-filled to the reference deploy; override if you redeploy. |
 | **Run** | Repo root: `npm run setup` then `npm run dev` → API **:4000**, UI **:5173** (`/api` proxied to the API). |
-| **Freighter** | **Testnet** + passphrase `Test SDF Network ; September 2015` (matches `NETWORK_PASSPHRASE` / `frontend/src/config/stellar.js`). |
+| **Freighter** | **Testnet** + passphrase `Test SDF Network ; September 2015` (matches `NETWORK_PASSPHRASE` / `client/src/config/stellar.js`). |
 | **Issue credentials** | The **issuer** Freighter account must **exist on Testnet with XLM** (Friendbot). Otherwise `build-register` fails: Soroban needs a sequence number for the transaction source. |
 | **Rewards / payments** | Pre-fund the **contract** with Testnet XLM on the SAC so `reward_student` and token transfers can succeed. |
 
