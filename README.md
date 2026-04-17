@@ -76,14 +76,21 @@ Stellaroid-2026/
 │   └── trigger-reward.mjs      # Week 4: POST /api/rewards/trigger
 ├── backend/            # Express + Soroban RPC (REST API)
 ├── client/             # React + Vite + Freighter (web UI)
-└── contract/           # Soroban Wasm crate (build & test from this directory)
+└── contract/           # Cargo workspace: all Soroban contracts (build & test from here)
+    ├── Cargo.toml      # [workspace] members: stellaroid_earn, payment_registry
+    ├── Cargo.lock
     ├── rust-toolchain.toml # Pin Rust 1.81.x for Soroban Wasm
     ├── .cargo/config.toml  # Extra Wasm rustflags for Soroban VM compatibility
-    ├── Cargo.toml
-    ├── Cargo.lock
-    └── src/
-        ├── lib.rs      # Soroban smart contract (core logic)
-        └── test.rs     # Unit tests (soroban_sdk::testutils)
+    ├── stellaroid_earn/    # Main credential + rewards contract
+    │   ├── Cargo.toml
+    │   └── src/
+    │       ├── lib.rs
+    │       └── test.rs
+    └── payment_registry/ # Payment log + stats (separate deployable Wasm)
+        ├── Cargo.toml
+        └── src/
+            ├── lib.rs
+            └── test.rs
 ```
 
 ### 🟢 Green Belt — NPM scripts (Week 3–4)
@@ -100,7 +107,8 @@ From the **repository root** (requires Node 18+):
 | `npm run green-belt:week4:smoke` | **Week 4:** hits `GET /health` and `GET /api/certificates/count` |
 | `npm run green-belt:week4:reward -- <64-hex-hash>` | **Week 4:** calls `POST /api/rewards/trigger` (contract must hold XLM; cert must exist) |
 | `npm run build:web` | Production build of the React app |
-| `npm run build:contract` | `cd contract && stellar contract build` (Wasm output under `contract/target/`) |
+| `npm run build:contract` | `cd contract/stellaroid_earn && stellar contract build` → `contract/target/.../stellaroid_earn.wasm` |
+| `npm run build:contract:payment` | `cd contract/payment_registry && stellar contract build` → `contract/target/.../payment_registry.wasm` |
 
 Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + trustline** (stretch) still use Stellar Laboratory or CLI per Yellow Belt — not wrapped in npm here.
 
@@ -124,13 +132,17 @@ Set `API_URL` if the API is not on `http://localhost:4000`. **Custom token + tru
 git clone https://github.com/your-org/stellaroid-earn.git
 cd stellaroid_earn
 
-cd contract
+cd contract/stellaroid_earn
 
 # Build the Wasm contract (uses wasm32v1-none when using current Stellar CLI)
 stellar contract build
 # or: soroban contract build
 
 # Output (typical): contract/target/wasm32v1-none/release/stellaroid_earn.wasm
+
+# Payment registry (separate contract):
+# cd contract/payment_registry && stellar contract build
+# → contract/target/wasm32v1-none/release/payment_registry.wasm
 ```
 
 ---
@@ -140,7 +152,7 @@ stellar contract build
 ```bash
 cd contract
 
-# Run all 3 unit tests
+# Run unit tests for all workspace members (stellaroid_earn + payment_registry)
 cargo test
 
 # Run with output visible (useful for debugging events)
@@ -165,7 +177,7 @@ test result: ok. 3 passed; 0 failed
 Use either:
 
 ```bash
-cd contract
+cd contract/stellaroid_earn
 
 # Recommended — Stellar CLI applies the right target (usually wasm32v1-none)
 stellar contract build
@@ -177,7 +189,7 @@ Or plain Cargo (same rustflags via **`contract/.cargo/config.toml`**):
 ```bash
 cd contract
 cargo clean
-cargo build --target wasm32v1-none --release
+cargo build -p stellaroid_earn --target wasm32v1-none --release
 # Legacy target (if needed): cargo build --target wasm32-unknown-unknown --release
 ```
 

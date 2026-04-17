@@ -1,0 +1,24 @@
+[package]
+name    = "stellaroid_earn"
+version = "0.1.0"
+edition = "2021"
+authors = ["Stellaroid Earn Contributors"]
+description = "On-chain credential verification and learn-to-earn platform for SEA students, built on Stellar Soroban."
+license = "MIT"
+
+# ─── Library config ───────────────────────────────────────────────────────────
+# cdylib  → produces the .wasm file deployed to the Stellar network
+# rlib    → allows the crate to be imported by test.rs and other Rust code
+[lib]
+name        = "stellaroid_earn"
+crate-type  = ["cdylib", "rlib"]
+
+# ─── Runtime dependencies ─────────────────────────────────────────────────────
+[dependencies]
+soroban-sdk = { version = "21.0.0" }
+
+# ─── Test-only dependencies ───────────────────────────────────────────────────
+# testutils enables Env::default(), Address::generate(), mock_all_auths(),
+# and the token test helpers needed by test.rs.
+[dev-dependencies]
+soroban-sdk = { version = "21.0.0", features = ["testutils"] }
