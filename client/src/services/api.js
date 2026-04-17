@@ -77,7 +77,7 @@ export async function getBalance(address) {
 export async function verifyCertificate(hash) {
   const clean = hash.replace(/^0x/i, '')
   const res = await fetch(
-    `/api/certificates/verify/${encodeURIComponent(clean)}`,
+    apiUrl(`/api/certificates/verify/${encodeURIComponent(clean)}`),
   )
   return parseJson(res)
 }
@@ -93,7 +93,7 @@ export async function buildPaymentTx(body) {
 }
 
 export async function submitPayment({ signedXdr }) {
-  const res = await fetch('/api/payments/submit', {
+  const res = await fetch(apiUrl('/api/payments/submit'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ signedXdr }),

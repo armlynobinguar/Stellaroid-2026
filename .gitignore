@@ -1,5 +1,7 @@
 # Rust / Soroban
 target/
+# Accidental `cargo` at repo root (build from contract/)
+/Cargo.lock
 **/*.rs.bk
 
 # Node

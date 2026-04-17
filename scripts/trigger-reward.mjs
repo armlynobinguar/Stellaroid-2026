@@ -30,8 +30,16 @@ try {
 }
 
 if (!res.ok) {
-  console.error(res.status, body)
+  const safe =
+    body && typeof body === 'object'
+      ? { ...body, signedXdr: body.signedXdr ? '[redacted]' : undefined }
+      : body
+  console.error(res.status, safe)
   process.exit(1)
 }
 
-console.log(body)
+const out =
+  body && typeof body === 'object'
+    ? { ...body, signedXdr: body.signedXdr ? '[redacted]' : undefined }
+    : body
+console.log(out)
